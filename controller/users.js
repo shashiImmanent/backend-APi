@@ -1,9 +1,11 @@
 const User = require("../models/user");
+const config = require("../config/config.json");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const validateRegisterInput = require("../validation/register");
 const validateLoginInput = require("../validation/login");
 const  validatechangePasswordInput = require("../validation/change-password");
+const validateUpdatePasswordInput = require("../validation/update-password");
  // Register User 
  //@route users/register
 const userController = {
@@ -28,7 +30,7 @@ const userController = {
 
             await newUser.save();
             return res.json({
-                status:"200",
+                status:"201",
                 msg:"successfully Registered"
             }) 
  
@@ -60,9 +62,11 @@ login: async(req,res)=>{
      if(!isMatch) {
          return res.status(400).json({errors:{password:"Password deos not matched"}});
      }
-     
+
+  
+      
      return res.json({
-         status:"200",
+         status:"201",
          msg:"Login successfully"
     });
 
@@ -71,15 +75,22 @@ login: async(req,res)=>{
     }
 },
 
+get_cookie: (req, res) => {
+    console.log(req.cookies);
+    res.send(req.cookies);
+},
+/*
 logout: async(req,res)=>{
      try{
         res.clearCookie(refreshtoken,{path:"/users/refresh_token"});
-        return res.json({ status: 1, msg: "logged out" });
+        return res.json({ status: 200, msg: "logged out" });
      }
      catch(err){
         return res.status(500).json({msg:err.message});
      }
 },
+
+*/
 
 // change password
 // @router /users/password_change
@@ -92,6 +103,8 @@ password_change:async(req,res)=>{
       if(!isValid){
           return res.status(400).json(errors);
       }
+      
+      
       const user = await User.findOne({email:req.body.email});
       const isMatch = bcrypt.compare(req.body.oldpassword,user.password);
       if(!isMatch){
@@ -108,14 +121,35 @@ password_change:async(req,res)=>{
      return res.json({ error: 0, errors: { oldPassword: err.message } });
     }
 },
+ 
 
 
+// update password
 
+update_password:async(req,res)=>{
+    try{
+        console.log(req.body);
+     const {errors ,  isValid } =  validateUpdatePasswordInput(req.body);
+     if(!isValid){
+         return res.status(400).json({errors:"validation errors"});
+     }
+    
+     const passwordhash = bcrypt.hash(req.body.new_password, 10);
+     await User.findOneAndUpdate({
+            _id: req.body.user_id
+     },{
+        passwordhash
+     })
+
+     return res.status(201).json({msg:"Passwrod successfully updated"});
+     
+    }catch(err){
+      return res.status(500).json({err:{oldpassword:err.message}});
+    }
+
+    
+},
 
 }
-
-
-
-
 
 module.exports  = userController;

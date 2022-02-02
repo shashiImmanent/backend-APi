@@ -1,0 +1,8 @@
+{
+"MONGO_URL" : "mongodb+srv://betacarbon:NOa9E3CNyxGlO8Qq@cluster0.i6aiv.mongodb.net/apidata?retryWrites=true&w=majority",
+
+"PORT" : "7006",
+"ACCESS_TOKEN_KEY" : "shshsdjksjfsdjfjdfsjkfjksks",
+"REFRESH_TOKEN_KEY" : "ajsdshfdhffgfgfgfrtrtrtrttnnnnnn"
+
+}
