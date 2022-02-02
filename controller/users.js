@@ -104,6 +104,7 @@ password_change:async(req,res)=>{
           return res.status(400).json(errors);
       }
       
+     
       
       const user = await User.findOne({email:req.body.email});
       const isMatch = bcrypt.compare(req.body.oldpassword,user.password);
