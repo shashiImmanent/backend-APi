@@ -62,13 +62,15 @@ login: async(req,res)=>{
      if(!isMatch) {
          return res.status(400).json({errors:{password:"Password deos not matched"}});
      }
-
-  
-      
      return res.json({
          status:"201",
          msg:"Login successfully"
     });
+       const accesstoken = createAccessToken({id:user._id});
+   console.log(accesstoken,"111111");
+   const refreshtoken = createRefreshToken({id:user._id});
+  refreshTokens.push(refreshtoken);
+  console.log(refreshtoken,"2222222");
 
     }catch(err){
        return res.status(500).json({msg: err.message});
@@ -79,7 +81,7 @@ get_cookie: (req, res) => {
     console.log(req.cookies);
     res.send(req.cookies);
 },
-/*
+
 logout: async(req,res)=>{
      try{
         res.clearCookie(refreshtoken,{path:"/users/refresh_token"});
@@ -90,7 +92,46 @@ logout: async(req,res)=>{
      }
 },
 
-*/
+// refresh token 
+ refreshToken:async(req,res)=>{
+     try{
+       console.log(refreshTokens, "rffffffffffffff");
+       const rf_token = refreshTokens[0];
+       if(!rf_token) {
+           return res.status(400).json({msg:"login first"});
+       }
+
+       /// verifying the token 
+       jwt.verify(
+           rf_token,
+            config.REFRESH_TOKEN_KEY,
+            console.log(REFRESH_TOKEN_KEY),
+            async(err,result)=>{
+                if(err){
+                    return res.status(400).json({ msg: "login first" });
+                }
+                if(!result){
+                    return res.status(400).json({ msg: "user does not exist" });
+                }
+                const user = await User.findById(result.id);
+                const access_token = createAccessToken({ id: user.id });
+                res.json({
+                    access_token,
+						role: user.role,
+						user: {
+							...user._doc,
+							password: " ",
+						},
+                })
+            },
+          
+       )
+     }catch(err){
+
+     }
+ },
+
+
 
 // change password
 // @router /users/password_change
@@ -152,5 +193,15 @@ update_password:async(req,res)=>{
 },
 
 }
+//Function to to create access token.
+const createAccessToken = (user) => {
+	return jwt.sign(user, config.ACCESS_TOKEN_KEY, { expiresIn: "1d" });
+};
+
+//Function to to create access token.
+const createRefreshToken = (user) => {
+	return jwt.sign(user, config.REFRESH_TOKEN_KEY, { expiresIn: "7d" });
+};
+
 
 module.exports  = userController;
